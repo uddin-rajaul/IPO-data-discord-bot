@@ -56,13 +56,14 @@ async def scrape_data():
 
     table_data = []
     df = pd.DataFrame(
-        columns=['SN', 'Symbol', 'Units', 'Price', 'Opening Date', 'Closing Date', 'Last Closing Date', 'Issue Manager',
+        columns=['SN', 'Symbol', 'Company', 'Units', 'Price', 'Opening Date', 'Closing Date', 'Last Closing Date', 'Issue Manager',
                  'Status'])
 
     for i in range(len(row[:10])):
         df = {
             'SN': sn[i].text,
             'Symbol': symbol[i].text,
+            'Company': company[i].text,
             'Units': units[i].text,
             'Price': price[i].text,
             'Opening Date': opening_date[i].text,
@@ -80,18 +81,23 @@ async def scrape_data():
 async def on_ready():
     print(f'We have logged in as {client.user}')
 
+
 @client.event
 async def on_message(message):
     if message.author == client.user:
         return
 
-    if message.content.startswith('!hello'):
+    elif message.content.startswith('$hello'):
         await message.channel.send('Hello!')
 
+    elif message.content.startswith('$help'):
+        embed = discord.Embed(title="Help", description="List of available commands", color=0x00ff00)
+        embed.add_field(name="$scrape", value="Scrapes data from sharesansar.com and sends the result to the current channel", inline=False)
+        embed.add_field(name="$help", value="Displays this help message", inline=False)
+        channel = client.get_channel(947753526761758771)
+        await channel.send(embed=embed)
 
-@client.event
-async def on_message(message):
-    if message.content.startswith('$scrape'):
+    elif message.content.startswith('$scrape'):
         await message.channel.send("Scraping data...")
 
         today = pd.to_datetime('today').strftime('%Y-%m-%d')
@@ -102,17 +108,24 @@ async def on_message(message):
             open_data = df_data[df_data['Status'] == 'Open']
             coming_soon_data = df_data[df_data['Status'] == 'Coming Soon']
             channel = client.get_channel(947753526761758771)  # Replace channel_id with your channel id
+
             if not open_data.empty:
-                message = "**Open IPOs**\n\n"
+                embed = discord.Embed(title="Open IPOs", color=0x00ff00)
                 for index, row in open_data.iterrows():
-                    message += f"**{row['Symbol']}**\nUnits: {row['Units']}\nPrice: {row['Price']}\nOpening Date: {row['Opening Date']}\nClosing Date: {row['Closing Date']}\nIssue Manager: {row['Issue Manager']}\n\n"
-                await channel.send(message)
+                    embed.add_field(name=f"**{row['Symbol']}**",
+                                    value=f"Units: {row['Units']}\nPrice: {row['Price']}\nOpening Date: {row['Opening Date']}\nClosing Date: {row['Closing Date']}\nIssue Manager: {row['Issue Manager']}",
+                                    inline=False)
+                embed.add_field(name="\u200b", value="\u200b", inline=False)  # Add a blank field as a separator
+                await channel.send(embed=embed)
 
             if not coming_soon_data.empty:
-                message = "\n\n**Upcoming IPOs**\n\n"
+                embed = discord.Embed(title="Upcoming IPOs", color=0xff0000)
                 for index, row in coming_soon_data.iterrows():
-                    message += f"**{row['Symbol']}**\nUnits: {row['Units']}\nPrice: {row['Price']}\nOpening Date: {row['Opening Date']}\nClosing Date: {row['Closing Date']}\nIssue Manager: {row['Issue Manager']}\n\n"
-                await channel.send(message)
+                    embed.add_field(name=f"**{row['Symbol']}**",
+                                    value=f"Units: {row['Units']}\nPrice: {row['Price']}\nOpening Date: {row['Opening Date']}\nClosing Date: {row['Closing Date']}\nIssue Manager: {row['Issue Manager']}",
+                                    inline=False)
+                embed.add_field(name="\u200b", value="\u200b", inline=False)  # Add a blank field as a separator
+                await channel.send(embed=embed)
         else:
             data = await scrape_data()
             df = pd.DataFrame(data)
@@ -122,16 +135,22 @@ async def on_message(message):
             coming_soon_data = df_data[df_data['Status'] == 'Coming Soon']
             channel = client.get_channel(947753526761758771)  # Replace channel_id with your channel id
             if not open_data.empty:
-                message = "**Open IPOs**\n\n"
+                embed = discord.Embed(title="Open IPOs", color=0x00ff00)
                 for index, row in open_data.iterrows():
-                    message += f"**{row['Symbol']}**\nUnits: {row['Units']}\nPrice: {row['Price']}\nOpening Date: {row['Opening Date']}\nClosing Date: {row['Closing Date']}\nIssue Manager: {row['Issue Manager']}\n\n"
-                await channel.send(message)
+                    embed.add_field(name=f"**{row['Symbol']}**",
+                                    value=f"Units: {row['Units']}\nPrice: {row['Price']}\nOpening Date: {row['Opening Date']}\nClosing Date: {row['Closing Date']}\nIssue Manager: {row['Issue Manager']}",
+                                    inline=False)
+                embed.add_field(name="\u200b", value="\u200b", inline=False)
+                await channel.send(embed=embed)
 
             if not coming_soon_data.empty:
-                message = "\n\n**Upcoming IPOs**\n\n"
+                embed = discord.Embed(title="Upcoming IPOs", color=0xff0000)
                 for index, row in coming_soon_data.iterrows():
-                    message += f"**{row['Symbol']}**\nUnits: {row['Units']}\nPrice: {row['Price']}\nOpening Date: {row['Opening Date']}\nClosing Date: {row['Closing Date']}\nIssue Manager: {row['Issue Manager']}\n\n"
-                await channel.send(message)
+                    embed.add_field(name=f"**{row['Symbol']}**",
+                                    value=f"Units: {row['Units']}\nPrice: {row['Price']}\nOpening Date: {row['Opening Date']}\nClosing Date: {row['Closing Date']}\nIssue Manager: {row['Issue Manager']}",
+                                    inline=False)
+                embed.add_field(name="\u200b", value="\u200b", inline=False)
+                await channel.send(embed=embed)
 
 
 client.run(TOKEN)
